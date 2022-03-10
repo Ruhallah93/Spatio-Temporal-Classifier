@@ -77,7 +77,10 @@ class RestoringBest(keras.callbacks.Callback):
         super(keras.callbacks.Callback, self).__init__()
         self.metric = metric
         self.monitor = monitor
-        self.best = -np.Inf
+        if monitor.split('_')[1] == 'loss':
+            self.best = np.Inf
+        else:
+            self.best = -np.Inf
         self.best_weights = None
         self.best_epoch = -1
 
