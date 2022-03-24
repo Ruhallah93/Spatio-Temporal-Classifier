@@ -101,7 +101,7 @@ class Dataset:
 
         self.class_names = {}
         for i, csv_path in enumerate(csv_paths):
-            label = int(os.path.basename(glob.glob(self.db_path + "*.csv")[0]).split('.')[0])
+            label = int(os.path.basename(csv_path).split('.')[0])
             self.class_names[label] = i
             train, valid, test = self.__read_data(csv_path, self.features, label)
             train['id'] = i
@@ -119,7 +119,7 @@ class Dataset:
         data = data[features]
         data = data.fillna(data.mean())
         length = self.data_length_size if self.data_length_size != -1 else data.shape[0]
-        print('class: %s, data size: %s, selected data size: %s' % (
+        print('class: %5s, data size: %s, selected data size: %s' % (
             label, str(timedelta(seconds=int(data.shape[0] / self.sample_rate))),
             str(timedelta(seconds=int(length / self.sample_rate)))))
         return self.__split_to_train_valid_test(data)

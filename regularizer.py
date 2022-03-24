@@ -3,7 +3,7 @@ from tensorflow import keras
 from sklearn.metrics import accuracy_score, recall_score, f1_score, precision_score
 import numpy as np
 
-from utils import MajorityVote, MaximumScore, get_segments_a_decision_window
+from utils import MajorityVote, AveragingProbabilities, get_segments_a_decision_window
 
 
 class ModelAnalyser:
@@ -35,12 +35,14 @@ class ModelAnalyser:
         y_prediction = model.predict(self.X)
 
         if monitor_method == 'ms':
-            y_pred_labels, y_dw_real = MaximumScore(self.y_real, y_prediction, self.segments_a_decision_window,
-                                                    self.decision_overlap)
+            y_pred_labels, y_dw_real = AveragingProbabilities(self.y_real, y_prediction, self.segments_a_decision_window,
+                                                              self.decision_overlap)
 
             if monitor_measure == 'loss':
-                loss_fn = tf.keras.losses.get(model.loss)
-                return loss_fn(y_dw_real, y_pred_labels)
+                # loss_fn = tf.keras.losses.get(model.loss)
+                # return np.mean(loss_fn(y_dw_real, y_pred_labels))
+                loss_fn = tf.keras.losses.MeanSquaredError()
+                return loss_fn(y_dw_real, y_pred_labels).numpy()
             elif monitor_measure == 'accuracy':
                 return accuracy_score(y_dw_real, y_pred_labels)
             elif monitor_measure == 'precision':
@@ -54,8 +56,10 @@ class ModelAnalyser:
             y_pred_labels, y_dw_real = MajorityVote(self.y_real, y_prediction, self.segments_a_decision_window,
                                                     self.decision_overlap)
             if monitor_measure == 'loss':
-                loss_fn = tf.keras.losses.get(model.loss)
-                return np.mean(loss_fn(y_dw_real, y_pred_labels))
+                # loss_fn = tf.keras.losses.get(model.loss)
+                # return np.mean(loss_fn(y_dw_real, y_pred_labels))
+                loss_fn = tf.keras.losses.MeanSquaredError()
+                return loss_fn(y_dw_real, y_pred_labels).numpy()
             elif monitor_measure == 'accuracy':
                 return accuracy_score(y_dw_real, y_pred_labels)
             elif monitor_measure == 'precision':

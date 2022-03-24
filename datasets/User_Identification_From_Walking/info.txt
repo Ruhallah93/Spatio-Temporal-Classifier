@@ -1,5 +1,8 @@
 https://archive.ics.uci.edu/ml/datasets/User+Identification+From+Walking+Activity
 
+Sampling Rate: 32
+features = [' x acceleration', ' y acceleration', ' z acceleration']
+classes = org - ignored = 22 -  9 = 13
 Source:
 
 Pierluigi Casale, Computer Vision Center, Barcelona, Spain. Email: plcasale '@' ieee.org

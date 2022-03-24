@@ -103,29 +103,29 @@ def hv_block_analyzer(db_path, sample_rate, features, n_classes, data_arrangemen
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # ['x-accelerometer', 'y-accelerometer', 'z-accelerometer', 'x-gyroscope', 'y-gyroscope', 'z-gyroscope']
-    parser.add_argument('--dataset', type=str, default='datasets/Motor_Failure_Time/',
+    parser.add_argument('--dataset', type=str, default='datasets/User_Identification_From_Walking/',
                         help='the address of dataset directory')
-    parser.add_argument('--n_classes', type=int, default=3, help='the number of classes')
+    parser.add_argument('--n_classes', type=int, default=13, help='the number of classes')
     parser.add_argument('--features', nargs='+', type=str,
-                        default=['pctid', 'x', 'y', 'z'], help='the signals of original data')
-    parser.add_argument('--sample_rate', type=int, default=18, help='the sampling rate of signals')
+                        default=[' x acceleration', ' y acceleration', ' z acceleration'], help='the signals of original data')
+    parser.add_argument('--sample_rate', type=int, default=32, help='the sampling rate of signals')
     parser.add_argument('--noise_rate', type=int, default=100,
                         help='the rate of noises injected to test data, over 100 means false')
-    parser.add_argument('--epochs', type=int, default=5, help='the number of training epochs')
+    parser.add_argument('--epochs', type=int, default=2, help='the number of training epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='the number of segments in each batch')
     parser.add_argument('--restore_best', type=int, default=1, help='for using regularization, 0 is False other True')
     parser.add_argument('--data_arrangement', type=str, default='4d', help='the shape of data {1d,2d,3d,4d}')
     parser.add_argument('--model_size', type=str, default='large', help='large|medium|small')
     parser.add_argument('--data_length_time', type=int, default=-1, help='the data length for each class,-1 means all')
-    parser.add_argument('--n_hv_block', type=int, default=15, help='the number of all hv blocks')
-    parser.add_argument('--n_train_hv_block', type=int, default=9, help='the number of hv blocks to train network')
+    parser.add_argument('--n_hv_block', type=int, default=10, help='the number of all hv blocks')
+    parser.add_argument('--n_train_hv_block', type=int, default=5, help='the number of hv blocks to train network')
     parser.add_argument('--n_valid_hv_block', type=int, default=2, help='the number of hv blocks to validate network')
-    parser.add_argument('--n_test_hv_block', type=int, default=4, help='the number of hv blocks to test network')
+    parser.add_argument('--n_test_hv_block', type=int, default=3, help='the number of hv blocks to test network')
     parser.add_argument('--hv_moving_step', type=int, default=1, help='moving test blocks rate in each iteration')
-    parser.add_argument('--segments_times', nargs='+', type=int, default=[1], help='in seconds')
+    parser.add_argument('--segments_times', nargs='+', type=int, default=[24], help='in seconds')
     parser.add_argument('--segments_overlaps', nargs='+', type=float, default=[0.75], help='percentage in [0,1]')
-    parser.add_argument('--decision_times', nargs='+', type=int, default=[60 * 5], help='in seconds')
-    parser.add_argument('--decision_overlaps', nargs='+', type=float, default=[0.75], help='percentage in [0,1]')
+    parser.add_argument('--decision_times', nargs='+', type=int, default=[24], help='in seconds')
+    parser.add_argument('--decision_overlaps', nargs='+', type=float, default=[0], help='percentage in [0,1]')
     opt = parser.parse_args()
 
     log_dir = "logs/"

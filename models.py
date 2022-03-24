@@ -150,7 +150,7 @@ class ConvNet():
                                    decision_overlap=self.decision_overlap,
                                    X=X_valid,
                                    y=y_valid)
-            restoring_best = RestoringBest(metric=metric, monitor='mv_loss')
+            restoring_best = RestoringBest(metric=metric, monitor='ms_loss')
             self.model.fit(X_train, y_train_onehot,
                            validation_data=(X_valid, y_valid_onehot),
                            batch_size=batch_size,

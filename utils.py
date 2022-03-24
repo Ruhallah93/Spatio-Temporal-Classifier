@@ -2,6 +2,7 @@ import os
 import csv
 import numpy as np
 import pandas as pd
+from tensorflow.keras.losses import MeanSquaredError
 from sklearn.metrics import accuracy_score, recall_score, f1_score, precision_score
 
 
@@ -10,46 +11,48 @@ def get_segments_a_decision_window(segment_size, segment_overlap, decision_size)
     return int((decision_size - segment_size) / (segment_size - segment_overlap_size) + 1)
 
 
-def MaximumScore(y_real, y_prediction, segments_a_decision_window, decision_overlap):
+def AveragingProbabilities(y_truth, y_prediction, s, r):
     df = []
-    y_dw_real = []
-    predict_segments = []
-    for label_i in np.unique(y_real):
-        subset = y_prediction[np.where(y_real == label_i)]
-        for i in range(0, subset.shape[0], max(int(segments_a_decision_window * (1 - decision_overlap)), 1)):
-            if i + segments_a_decision_window <= subset.shape[0]:
-                row = np.zeros(y_prediction.shape[1])
-                predict_segments.append(subset[i:i + segments_a_decision_window])
-                for j in range(segments_a_decision_window):
-                    row += subset[i + j]
-                df.append(row)
-                y_dw_real.append(label_i)
+    y_dw_truth = []
+    c = y_prediction.shape[1]
+    r = int(np.floor(s * r))
+    for _id in np.unique(y_truth):
+        subset = y_prediction[np.where(y_truth == _id)]
+        n = subset.shape[0]
+        o = int(np.floor((n - r) / (s - r)))
+        for i in range(o):
+            row = np.zeros(c)
+            for j in range(s):
+                row += subset[(i*s) + j]
+            df.append(row / s)
+            y_dw_truth.append(_id)
     df = np.array(df)
-    y_pred_labels = np.zeros_like(df)
-    y_pred_labels[np.arange(len(df)), df.argmax(1)] = 1
-    return y_pred_labels, np.asarray(pd.get_dummies(y_dw_real), dtype=np.int8)
+    y_dw_truth = np.asarray(pd.get_dummies(y_dw_truth), dtype=np.int8)
+    return df, y_dw_truth
 
 
-def MajorityVote(y_real, y_prediction, segments_a_decision_window, decision_overlap):
+def MajorityVote(y_truth, y_prediction, s, r):
     df = []
-    y_dw_real = []
-
+    y_dw_truth = []
+    c = y_prediction.shape[1]
+    r = int(np.floor(s * r))
+    # Make prior prediction to one-hot
     y_categorical_pred = np.zeros_like(y_prediction)
     y_categorical_pred[np.arange(len(y_prediction)), y_prediction.argmax(1)] = 1
-    # y_categorical_pred = np.asarray(pd.get_dummies(np.argmax(y_prediction, axis=1)), dtype=np.int8)
-    for class_i in np.unique(y_real):
-        subset = y_categorical_pred[np.where(y_real == class_i)]
-        for i in range(0, subset.shape[0], max(int(segments_a_decision_window * (1 - decision_overlap)), 1)):
-            if i + segments_a_decision_window <= subset.shape[0]:
-                row = np.zeros(y_categorical_pred.shape[1])
-                for j in range(segments_a_decision_window):
-                    row += subset[i + j]
-                df.append(row)
-                y_dw_real.append(class_i)
+
+    for _id in np.unique(y_truth):
+        subset = y_categorical_pred[np.where(y_truth == _id)]
+        n = subset.shape[0]
+        o = int(np.floor((n - r) / (s - r)))
+        for i in range(o):
+            row = np.zeros(c)
+            for j in range(s):
+                row += subset[(i*s) + j]
+            df.append(row / s)
+            y_dw_truth.append(_id)
     df = np.array(df)
-    y_pred_labels = np.zeros_like(df)
-    y_pred_labels[np.arange(len(df)), df.argmax(1)] = 1
-    return y_pred_labels, np.asarray(pd.get_dummies(y_dw_real), dtype=np.int8)
+    y_dw_truth = np.asarray(pd.get_dummies(y_dw_truth), dtype=np.int8)
+    return df, y_dw_truth
 
 
 # p = MaximumScore(np.array([1, 1, 1, 1, 2, 2, 2, 2]), np.array(
@@ -61,7 +64,9 @@ def MajorityVote(y_real, y_prediction, segments_a_decision_window, decision_over
 
 def analysis_model(y_pred, y_real_raw, segment_size, segment_overlap, decision_size, decision_overlap):
     result = {'Core': {}, 'MV': {}, 'MS': {}}
+    loss_fn = MeanSquaredError()
 
+    result['Core']['mse_loss'] = loss_fn(np.asarray(pd.get_dummies(y_real_raw), dtype=np.int8), y_pred).numpy()
     y_pred_arg = np.argmax(y_pred, axis=1)
     result['Core']['accuracy'] = accuracy_score(y_real_raw, y_pred_arg)
     result['Core']['precision'] = precision_score(y_real_raw, y_pred_arg, average='macro')
@@ -71,20 +76,28 @@ def analysis_model(y_pred, y_real_raw, segment_size, segment_overlap, decision_s
     segments_a_decision_window = get_segments_a_decision_window(segment_size, segment_overlap, decision_size)
 
     # Maximum Score
-    y_pred_labels, y_real = MaximumScore(y_real=y_real_raw, y_prediction=y_pred,
-                                         segments_a_decision_window=segments_a_decision_window,
-                                         decision_overlap=decision_overlap)
+    y_pred_labels, y_real = AveragingProbabilities(y_truth=y_real_raw, y_prediction=y_pred,
+                                                   s=segments_a_decision_window,
+                                                   r=decision_overlap)
 
+    result['MS']['mse_loss'] = loss_fn(y_real, y_pred_labels).numpy()
+    temp = y_pred_labels.copy()
+    y_pred_labels = np.zeros_like(temp)
+    y_pred_labels[np.arange(len(temp)), temp.argmax(1)] = 1
     result['MS']['accuracy'] = accuracy_score(y_real, y_pred_labels)
     result['MS']['precision'] = precision_score(y_real, y_pred_labels, average='macro')
     result['MS']['recall'] = recall_score(y_real, y_pred_labels, average='macro')
     result['MS']['f1'] = f1_score(y_real, y_pred_labels, average='macro')
 
     # Majority Voting
-    y_pred_labels, y_real = MajorityVote(y_real=y_real_raw, y_prediction=y_pred,
-                                         segments_a_decision_window=segments_a_decision_window,
-                                         decision_overlap=decision_overlap)
+    y_pred_labels, y_real = MajorityVote(y_truth=y_real_raw, y_prediction=y_pred,
+                                         s=segments_a_decision_window,
+                                         r=decision_overlap)
 
+    result['MV']['mse_loss'] = loss_fn(y_real, y_pred_labels).numpy()
+    temp = y_pred_labels.copy()
+    y_pred_labels = np.zeros_like(temp)
+    y_pred_labels[np.arange(len(temp)), temp.argmax(1)] = 1
     result['MV']['accuracy'] = accuracy_score(y_real, y_pred_labels)
     result['MV']['precision'] = precision_score(y_real, y_pred_labels, average='macro')
     result['MV']['recall'] = recall_score(y_real, y_pred_labels, average='macro')
