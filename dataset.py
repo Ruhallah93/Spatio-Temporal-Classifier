@@ -101,7 +101,7 @@ class Dataset:
 
         self.class_names = {}
         for i, csv_path in enumerate(csv_paths):
-            label = int(os.path.basename(csv_path).split('.')[0])
+            label = os.path.basename(csv_path).split('.')[0]
             self.class_names[label] = i
             train, valid, test = self.__read_data(csv_path, self.features, label)
             train['id'] = i

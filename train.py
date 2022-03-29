@@ -2,8 +2,7 @@ from datetime import datetime
 import numpy as np
 import argparse
 from dataset import Dataset
-from models import ConvNet
-from transformer import Transformer
+from models import models
 from utils import analysis_model, save_result
 from datetime import timedelta
 
@@ -12,41 +11,41 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def train_model(dataset: Dataset, conv_net: ConvNet, restore_best, epochs, batch_size):
-    conv_net.train(epochs=epochs,
-                   X_train=dataset.X_train,
-                   y_train=dataset.y_train,
-                   X_valid=dataset.X_valid,
-                   y_valid=dataset.y_valid,
-                   restore_best=restore_best,
-                   batch_size=batch_size)
+def train_model(dataset: Dataset, classifier, restore_best, epochs, batch_size):
+    y_test_prediction = classifier.train(epochs=epochs,
+                                         X_train=dataset.X_train,
+                                         y_train=dataset.y_train,
+                                         X_valid=dataset.X_valid,
+                                         y_valid=dataset.y_valid,
+                                         X_test=dataset.X_test,
+                                         restore_best=restore_best,
+                                         batch_size=batch_size)
 
-    y_test_prediction = conv_net.model.predict(dataset.X_test)
     result_test = analysis_model(y_pred=y_test_prediction,
                                  y_real_raw=dataset.y_test,
-                                 segment_size=conv_net.segments_size,
-                                 segment_overlap=conv_net.segments_overlap,
-                                 decision_size=conv_net.decision_size,
-                                 decision_overlap=conv_net.decision_overlap)
+                                 segment_size=classifier.segments_size,
+                                 segment_overlap=classifier.segments_overlap,
+                                 decision_size=classifier.decision_size,
+                                 decision_overlap=classifier.decision_overlap)
 
-    print('Test(CNN):%5.2f Test(MV):%5.2f ' % (result_test['Core']['accuracy'], result_test['MV']['accuracy']))
+    print('Test(%s):%5.2f Test(MV):%5.2f ' % (
+        str(classifier), result_test['Core']['accuracy'], result_test['MV']['accuracy']))
 
     return result_test
 
 
-def hv_block_analyzer(db_path, sample_rate, features, n_classes, data_arrangement, noise_rate, segments_time,
-                      segments_overlap, convNet: ConvNet, epochs, batch_size, restore_best, data_length_time,
+def hv_block_analyzer(db_path, sample_rate, features, n_classes, noise_rate, segments_time,
+                      segments_overlap, classifier, epochs, batch_size, restore_best, data_length_time,
                       n_hv_block, n_train_hv_block, n_valid_hv_block, n_test_hv_block, hv_moving_step=1):
     """
     :param db_path: the address of dataset directory
     :param sample_rate: the sampling rate of signals
     :param features: the signals of original data
     :param n_classes: the number of classes
-    :param data_arrangement: the shape of data {'1d','2d','3d','4d'}
     :param noise_rate: the rate of noises injected to test data
     :param segments_time: the length of each segment in seconds.
     :param segments_overlap: the overlap of each segment
-    :param convNet: the neural network
+    :param classifier: the neural network
     :param epochs: the number of training epochs
     :param batch_size: the number of segments in each batch
     :param restore_best: for using regularization {'True', 'False}
@@ -85,8 +84,8 @@ def hv_block_analyzer(db_path, sample_rate, features, n_classes, data_arrangemen
                           test_blocks=test_blocks,
                           data_length_time=data_length_time)
 
-        dataset.load_data(n_classes=n_classes, method=data_arrangement)
-        result = train_model(dataset=dataset, conv_net=convNet, restore_best=restore_best, epochs=epochs,
+        dataset.load_data(n_classes=n_classes, method=classifier.get_data_arrangement())
+        result = train_model(dataset=dataset, classifier=classifier, restore_best=restore_best, epochs=epochs,
                              batch_size=batch_size)
 
         for key in result.keys():
@@ -103,90 +102,91 @@ def hv_block_analyzer(db_path, sample_rate, features, n_classes, data_arrangemen
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # ['x-accelerometer', 'y-accelerometer', 'z-accelerometer', 'x-gyroscope', 'y-gyroscope', 'z-gyroscope']
-    parser.add_argument('--dataset', type=str, default='datasets/User_Identification_From_Walking/',
+    parser.add_argument('--dataset', type=str, default='datasets/PRSA2017/',
                         help='the address of dataset directory')
-    parser.add_argument('--n_classes', type=int, default=13, help='the number of classes')
+    parser.add_argument('--n_classes', type=int, default=12, help='the number of classes')
     parser.add_argument('--features', nargs='+', type=str,
-                        default=[' x acceleration', ' y acceleration', ' z acceleration'], help='the signals of original data')
-    parser.add_argument('--sample_rate', type=int, default=32, help='the sampling rate of signals')
+                        default=['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3', 'TEMP', 'PRES', 'DEWP', 'RAIN', 'wd',
+                                 'WSPM'],
+                        help='the signals of original data')
+    parser.add_argument('--sample_rate', type=int, default=1, help='the sampling rate of signals')
     parser.add_argument('--noise_rate', type=int, default=100,
                         help='the rate of noises injected to test data, over 100 means false')
-    parser.add_argument('--epochs', type=int, default=2, help='the number of training epochs')
+    parser.add_argument('--epochs', type=int, default=20, help='the number of training epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='the number of segments in each batch')
     parser.add_argument('--restore_best', type=int, default=1, help='for using regularization, 0 is False other True')
-    parser.add_argument('--data_arrangement', type=str, default='4d', help='the shape of data {1d,2d,3d,4d}')
-    parser.add_argument('--model_size', type=str, default='large', help='large|medium|small')
+    parser.add_argument('--model', type=str, default='CNN_L', help='MULTI_CNN|CNN_L|MLP|KNN|LR|RF|SVM')
     parser.add_argument('--data_length_time', type=int, default=-1, help='the data length for each class,-1 means all')
-    parser.add_argument('--n_hv_block', type=int, default=10, help='the number of all hv blocks')
-    parser.add_argument('--n_train_hv_block', type=int, default=5, help='the number of hv blocks to train network')
+    parser.add_argument('--n_hv_block', type=int, default=15, help='the number of all hv blocks')
+    parser.add_argument('--n_train_hv_block', type=int, default=9, help='the number of hv blocks to train network')
     parser.add_argument('--n_valid_hv_block', type=int, default=2, help='the number of hv blocks to validate network')
-    parser.add_argument('--n_test_hv_block', type=int, default=3, help='the number of hv blocks to test network')
+    parser.add_argument('--n_test_hv_block', type=int, default=4, help='the number of hv blocks to test network')
     parser.add_argument('--hv_moving_step', type=int, default=1, help='moving test blocks rate in each iteration')
-    parser.add_argument('--segments_times', nargs='+', type=int, default=[24], help='in seconds')
+    parser.add_argument('--segments_times', nargs='+', type=int, default=[30], help='in seconds')
     parser.add_argument('--segments_overlaps', nargs='+', type=float, default=[0.75], help='percentage in [0,1]')
-    parser.add_argument('--decision_times', nargs='+', type=int, default=[24], help='in seconds')
+    parser.add_argument('--decision_times', nargs='+', type=int, default=[15 * 60], help='in seconds')
     parser.add_argument('--decision_overlaps', nargs='+', type=float, default=[0], help='percentage in [0,1]')
     opt = parser.parse_args()
 
     log_dir = "logs/"
+    segments_times = opt.segments_times
+    segments_overlaps = opt.segments_overlaps
+    decision_times = opt.decision_times
+    decision_overlaps = opt.decision_overlaps
+    for model in ['CNN_L', 'MLP', 'KNN', 'LR', 'RF', 'SVM']:  # 'CNN_L', 'MLP', 'KNN', 'LR', 'RF', 'SVM'
+        opt.model = model
+        for segments_time in segments_times:
+            for segments_overlap in segments_overlaps:
+                for decision_time in decision_times:
+                    for decision_overlap in decision_overlaps:
+                        classifier = getattr(models, opt.model)(classes=opt.n_classes,
+                                                                n_features=len(opt.features),
+                                                                segments_size=segments_time * opt.sample_rate,
+                                                                segments_overlap=segments_overlap,
+                                                                decision_size=decision_time * opt.sample_rate,
+                                                                decision_overlap=decision_overlap)
 
-    for segments_time in opt.segments_times:
-        for segments_overlap in opt.segments_overlaps:
-            for decision_time in opt.decision_times:
-                for decision_overlap in opt.decision_overlaps:
-                    data_shape = Transformer.data_shape(method=opt.data_arrangement,
-                                                        n_features=len(opt.features),
-                                                        segments_size=segments_time * opt.sample_rate)
-                    convNet = ConvNet(data_arrangement=opt.data_arrangement,
-                                      model_size=opt.model_size,
-                                      input_shape=(data_shape[-3], data_shape[-2], data_shape[-1]),
-                                      classes=opt.n_classes,
-                                      n_features=len(opt.features),
-                                      segments_size=segments_time * opt.sample_rate,
-                                      segments_overlap=segments_overlap,
-                                      decision_size=decision_time * opt.sample_rate,
-                                      decision_overlap=decision_overlap)
+                        # cross-validation
+                        start = datetime.now()
+                        statistics = hv_block_analyzer(db_path=opt.dataset,
+                                                       sample_rate=opt.sample_rate,
+                                                       features=opt.features,
+                                                       n_classes=opt.n_classes,
+                                                       noise_rate=opt.noise_rate,
+                                                       segments_time=segments_time,
+                                                       segments_overlap=segments_overlap,
+                                                       classifier=classifier,
+                                                       epochs=opt.epochs,
+                                                       batch_size=opt.batch_size,
+                                                       restore_best=opt.restore_best != 0,
+                                                       data_length_time=opt.data_length_time,
+                                                       n_hv_block=opt.n_hv_block,
+                                                       n_train_hv_block=opt.n_train_hv_block,
+                                                       n_valid_hv_block=opt.n_valid_hv_block,
+                                                       n_test_hv_block=opt.n_test_hv_block,
+                                                       hv_moving_step=opt.hv_moving_step)
+                        end = datetime.now()
+                        running_time = end - start
 
-                    # cross-validation
-                    start = datetime.now()
-                    statistics = hv_block_analyzer(db_path=opt.dataset,
-                                                   sample_rate=opt.sample_rate,
-                                                   features=opt.features,
-                                                   n_classes=opt.n_classes,
-                                                   data_arrangement=opt.data_arrangement,
-                                                   noise_rate=opt.noise_rate,
-                                                   segments_time=segments_time,
-                                                   segments_overlap=segments_overlap,
-                                                   convNet=convNet,
-                                                   epochs=opt.epochs,
-                                                   batch_size=opt.batch_size,
-                                                   restore_best=opt.restore_best != 0,
-                                                   data_length_time=opt.data_length_time,
-                                                   n_hv_block=opt.n_hv_block,
-                                                   n_train_hv_block=opt.n_train_hv_block,
-                                                   n_valid_hv_block=opt.n_valid_hv_block,
-                                                   n_test_hv_block=opt.n_test_hv_block,
-                                                   hv_moving_step=opt.hv_moving_step)
-                    end = datetime.now()
-                    running_time = end - start
+                        # Summarizing the results of cross-validation
+                        data = opt.__dict__
+                        data['inner_classifier'] = str(opt.model)
+                        data['datetime'] = datetime.now().strftime("%Y:%m:%d %H:%M:%S")
+                        data['running_time'] = str(running_time.seconds) + " seconds"
+                        data['n_params'] = classifier.count_params()
+                        data['segments_times'] = timedelta(seconds=int(segments_time))
+                        data['segments_overlaps'] = segments_overlap
+                        data['decision_times'] = timedelta(seconds=int(decision_time))
+                        data['decision_overlaps'] = decision_overlap
+                        statistics_summary = {}
+                        for key in statistics.keys():
+                            for inner_key in statistics[key].keys():
+                                statistics_summary[key + '_' + inner_key + '_mean'] = np.average(
+                                    statistics[key][inner_key])
+                                statistics_summary[key + '_' + inner_key + '_std'] = np.std(statistics[key][inner_key])
+                                statistics_summary[key + '_' + inner_key + '_max'] = np.max(statistics[key][inner_key])
+                                statistics_summary[key + '_' + inner_key + '_min'] = np.min(statistics[key][inner_key])
+                        data.update(statistics_summary)
 
-                    # Summarizing the results of cross-validation
-                    data = opt.__dict__
-                    data['datetime'] = datetime.now().strftime("%Y:%m:%d %H:%M:%S")
-                    data['running_time'] = str(running_time.seconds) + " seconds"
-                    data['n_params'] = convNet.model.count_params()
-                    data['segments_times'] = timedelta(seconds=int(segments_time))
-                    data['segments_overlaps'] = segments_overlap
-                    data['decision_times'] = timedelta(seconds=int(decision_time))
-                    data['decision_overlaps'] = decision_overlap
-                    statistics_summary = {}
-                    for key in statistics.keys():
-                        for inner_key in statistics[key].keys():
-                            statistics_summary[key + '_' + inner_key + '_mean'] = np.average(statistics[key][inner_key])
-                            statistics_summary[key + '_' + inner_key + '_std'] = np.std(statistics[key][inner_key])
-                            statistics_summary[key + '_' + inner_key + '_max'] = np.max(statistics[key][inner_key])
-                            statistics_summary[key + '_' + inner_key + '_min'] = np.min(statistics[key][inner_key])
-                    data.update(statistics_summary)
-
-                    # Save information
-                    save_result(log_dir=log_dir, data=data)
+                        # Save information
+                        save_result(log_dir=log_dir, data=data)

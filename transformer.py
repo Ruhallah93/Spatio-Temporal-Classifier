@@ -12,7 +12,9 @@ class Transformer:
         print("segmenting data with " + str(len(dataset)) + " points")
         segments, labels = self.__segment_signal(dataset, features)
         print("making " + str(len(segments)) + " segments")
-        if method == "1d":
+        if method == "table":
+            segments_dataset = self.__transfer_table(segments, features)
+        elif method == "1d":
             segments_dataset = self.__transfer_1d(segments, features)
         elif method == "2d":
             segments_dataset = self.__transfer_2d(segments, features)
@@ -24,7 +26,9 @@ class Transformer:
 
     @staticmethod
     def data_shape(method, n_features, segments_size):
-        if method == "1d":
+        if method == "table":
+            return (None, n_features * segments_size)
+        elif method == "1d":
             return (None, 1, n_features * segments_size, 1)
         elif method == "2d":
             return (None, n_features, segments_size, 1)
@@ -33,6 +37,18 @@ class Transformer:
         elif method == "4d":
             return (n_features, None, 1, segments_size, 1)
         return ()
+
+    def __transfer_table(self, segments, features):
+        new_dataset = []
+        for segment in segments:
+            row = []
+            for feature_i in range(len(features)):
+                for i in range(len(segment[feature_i])):
+                    row.append(segment[feature_i][i])
+            new_dataset.append(row)
+
+        new_dataset = np.array(new_dataset)
+        return new_dataset
 
     def __transfer_1d(self, segments, features):
         new_dataset = []

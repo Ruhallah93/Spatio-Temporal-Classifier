@@ -2,7 +2,7 @@ source:
 https://archive.ics.uci.edu/ml/datasets/WISDM+Smartphone+and+Smartwatch+Activity+and+Biometrics+Dataset+
 
 sampling rate = 20
-classes = 51
+classes = origin-ignored = 51-41 = 10
 
 Data Set Information:
 

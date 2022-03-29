@@ -23,7 +23,7 @@ def AveragingProbabilities(y_truth, y_prediction, s, r):
         for i in range(o):
             row = np.zeros(c)
             for j in range(s):
-                row += subset[(i*s) + j]
+                row += subset[(i * s) + j]
             df.append(row / s)
             y_dw_truth.append(_id)
     df = np.array(df)
@@ -47,7 +47,7 @@ def MajorityVote(y_truth, y_prediction, s, r):
         for i in range(o):
             row = np.zeros(c)
             for j in range(s):
-                row += subset[(i*s) + j]
+                row += subset[(i * s) + j]
             df.append(row / s)
             y_dw_truth.append(_id)
     df = np.array(df)
@@ -66,7 +66,8 @@ def analysis_model(y_pred, y_real_raw, segment_size, segment_overlap, decision_s
     result = {'Core': {}, 'MV': {}, 'MS': {}}
     loss_fn = MeanSquaredError()
 
-    result['Core']['mse_loss'] = loss_fn(np.asarray(pd.get_dummies(y_real_raw), dtype=np.int8), y_pred).numpy()
+    result['Core']['mse_loss'] = loss_fn(np.asarray(pd.get_dummies(y_real_raw), dtype=np.int8),
+                                         np.asarray(y_pred, dtype=np.float)).numpy()
     y_pred_arg = np.argmax(y_pred, axis=1)
     result['Core']['accuracy'] = accuracy_score(y_real_raw, y_pred_arg)
     result['Core']['precision'] = precision_score(y_real_raw, y_pred_arg, average='macro')
