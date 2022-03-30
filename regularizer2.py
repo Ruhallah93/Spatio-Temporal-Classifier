@@ -1,3 +1,4 @@
+import pandas
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.metrics import accuracy_score, recall_score, f1_score, precision_score
@@ -8,7 +9,7 @@ from utils import MajorityVote, AveragingProbabilities, get_segments_a_decision_
 
 class ModelAnalyser:
 
-    def __init__(self, segment_size, segment_overlap, decision_size, decision_overlap, X, y):
+    def __init__(self, segment_size, segment_overlap, decision_size, decision_overlap, X, y, X_t, y_t):
         """
         :param segment_size: for calculating number of segments in a decision window.
         :param segment_overlap: for calculating number of segments in a decision window.
@@ -21,8 +22,10 @@ class ModelAnalyser:
         self.decision_overlap = decision_overlap
         self.X = X
         self.y_real = y
+        self.X_t = X_t
+        self.y_t_real = y_t
 
-    def measurement(self, model, monitor):
+    def measurement(self, X, y_real, model, monitor):
         """
         :param y_real: expected labels
         :param y_prediction: the outcomes of core
@@ -32,10 +35,10 @@ class ModelAnalyser:
         monitor_method = monitor.split('_')[0]
         monitor_measure = monitor.split('_')[1]
 
-        y_prediction = model.predict(self.X)
+        y_prediction = model.predict(X)
 
         if monitor_method == 'ms':
-            y_pred_labels, y_dw_real = AveragingProbabilities(self.y_real, y_prediction,
+            y_pred_labels, y_dw_real = AveragingProbabilities(y_real, y_prediction,
                                                               self.segments_a_decision_window,
                                                               self.decision_overlap)
 
@@ -56,7 +59,7 @@ class ModelAnalyser:
                 return f1_score(y_dw_real, y_pred_one_hot, average='macro')
 
         if monitor_method == 'mv':
-            y_pred_labels, y_dw_real = MajorityVote(self.y_real, y_prediction, self.segments_a_decision_window,
+            y_pred_labels, y_dw_real = MajorityVote(y_real, y_prediction, self.segments_a_decision_window,
                                                     self.decision_overlap)
 
             y_pred_one_hot = np.zeros_like(y_pred_labels)
@@ -93,12 +96,24 @@ class RestoringBest(keras.callbacks.Callback):
             self.best = -np.Inf
         self.best_weights = None
         self.best_epoch = -1
+        self.history = []
 
     def on_epoch_end(self, epoch, logs={}):
 
-        current = self.metric.measurement(model=self.model, monitor=self.monitor)
-        accuracy = self.metric.measurement(model=self.model, monitor="ms_accuracy")
-        f1 = self.metric.measurement(model=self.model, monitor="ms_f1")
+        current = self.metric.measurement(X=self.metric.X, y_real=self.metric.y_real, model=self.model,
+                                          monitor=self.monitor)
+        accuracy = self.metric.measurement(X=self.metric.X, y_real=self.metric.y_real, model=self.model,
+                                           monitor="ms_accuracy")
+        f1 = self.metric.measurement(X=self.metric.X, y_real=self.metric.y_real, model=self.model, monitor="ms_f1")
+
+        loss_t = self.metric.measurement(X=self.metric.X_t, y_real=self.metric.y_t_real, model=self.model,
+                                         monitor=self.monitor)
+        accuracy_t = self.metric.measurement(X=self.metric.X_t, y_real=self.metric.y_t_real, model=self.model,
+                                             monitor="ms_accuracy")
+        f1_t = self.metric.measurement(X=self.metric.X_t, y_real=self.metric.y_t_real, model=self.model,
+                                       monitor="ms_f1")
+
+        self.history.append([loss_t, accuracy_t, f1_t, current, accuracy, f1])
         print(
             'epoch %d: \t %s: %f \t %s: %f \t %s: %f' % (epoch, self.monitor, current, "accuracy", accuracy, "f1", f1))
 
@@ -110,6 +125,11 @@ class RestoringBest(keras.callbacks.Callback):
             self.best_epoch = epoch
 
     def on_train_end(self, logs=None):
+        h = pandas.read_csv("history/history.csv")
+        h = pandas.concat([h, pandas.DataFrame(self.history,
+                                  columns=['train_loss', 'train_acc', 'train_f1', 'valid_loss', 'valid_acc',
+                                           'valid_f1'])])
+        h.to_csv("history/history.csv", index=False)
         if self.best_epoch > -1:
             print("Restoring model weights from the end of the %d epoch." % (self.best_epoch + 1))
             self.model.set_weights(self.best_weights)

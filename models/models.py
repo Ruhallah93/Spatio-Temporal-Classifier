@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from regularizer import RestoringBest, ModelAnalyser
+from regularizer2 import RestoringBest, ModelAnalyser
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -83,7 +83,9 @@ class MULTI_CNN():
                                    decision_size=self.decision_size,
                                    decision_overlap=self.decision_overlap,
                                    X=X_valid,
-                                   y=y_valid)
+                                   y=y_valid,
+                                   X_t=X_train,
+                                   y_t=y_train)
             restoring_best = RestoringBest(metric=metric, monitor='ms_loss')
             self.model.fit(X_train, y_train_onehot,
                            validation_data=(X_valid, y_valid_onehot),
@@ -170,7 +172,9 @@ class CNN_L():
                                    decision_size=self.decision_size,
                                    decision_overlap=self.decision_overlap,
                                    X=X_valid,
-                                   y=y_valid)
+                                   y=y_valid,
+                                   X_t=X_train,
+                                   y_t=y_train)
             restoring_best = RestoringBest(metric=metric, monitor='ms_loss')
             self.model.fit(X_train, y_train_onehot,
                            validation_data=(X_valid, y_valid_onehot),
@@ -245,7 +249,9 @@ class MLP():
                                    decision_size=self.decision_size,
                                    decision_overlap=self.decision_overlap,
                                    X=X_valid,
-                                   y=y_valid)
+                                   y=y_valid,
+                                   X_t=X_train,
+                                   y_t=y_train)
             restoring_best = RestoringBest(metric=metric, monitor='ms_loss')
             self.model.fit(X_train, y_train_onehot,
                            validation_data=(X_valid, y_valid_onehot),

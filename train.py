@@ -111,10 +111,10 @@ if __name__ == '__main__':
     parser.add_argument('--sample_rate', type=int, default=2, help='the sampling rate of signals')
     parser.add_argument('--noise_rate', type=int, default=100,
                         help='the rate of noises injected to test data, over 100 means false')
-    parser.add_argument('--epochs', type=int, default=20, help='the number of training epochs')
+    parser.add_argument('--epochs', type=int, default=50, help='the number of training epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='the number of segments in each batch')
     parser.add_argument('--restore_best', type=int, default=1, help='for using regularization, 0 is False other True')
-    parser.add_argument('--model', type=str, default='MULTI_CNN', help='MULTI_CNN|CNN_L|MLP|KNN|LR|RF|SVM')
+    parser.add_argument('--model', type=str, default='CNN_L', help='MULTI_CNN|CNN_L|MLP|KNN|LR|RF|SVM')
     parser.add_argument('--data_length_time', type=int, default=-1, help='the data length for each class,-1 means all')
     parser.add_argument('--n_hv_block', type=int, default=15, help='the number of all hv blocks')
     parser.add_argument('--n_train_hv_block', type=int, default=9, help='the number of hv blocks to train network')
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     segments_overlaps = opt.segments_overlaps
     decision_times = opt.decision_times
     decision_overlaps = opt.decision_overlaps
-    for model in ['CNN_L', 'MLP', 'KNN', 'LR', 'RF', 'SVM']:  # 'CNN_L', 'MLP', 'KNN', 'LR', 'RF', 'SVM'
+    for model in ['CNN_L']:
         opt.model = model
         for segments_time in segments_times:
             for segments_overlap in segments_overlaps:
