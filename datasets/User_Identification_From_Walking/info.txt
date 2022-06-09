@@ -32,3 +32,5 @@ Citation Request:
 --- Casale, P. Pujol, O. and Radeva, P.
 'Personalization and user verification in wearable systems using biometric walking patterns'
 Personal and Ubiquitous Computing, 16(5), 563-580, 2012
+
+\cite{casale2012personalization}

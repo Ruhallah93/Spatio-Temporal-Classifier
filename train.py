@@ -34,9 +34,9 @@ def train_model(dataset: Dataset, classifier, restore_best, epochs, batch_size):
     return result_test
 
 
-def hv_block_analyzer(db_path, sample_rate, features, n_classes, noise_rate, segments_time,
-                      segments_overlap, classifier, epochs, batch_size, restore_best, data_length_time,
-                      n_hv_block, n_train_hv_block, n_valid_hv_block, n_test_hv_block, hv_moving_step=1):
+def h_block_analyzer(db_path, sample_rate, features, n_classes, noise_rate, segments_time,
+                     segments_overlap, classifier, epochs, batch_size, restore_best, data_length_time,
+                     n_h_block, n_train_h_block, n_valid_h_block, n_test_h_block, h_moving_step=1):
     """
     :param db_path: the address of dataset directory
     :param sample_rate: the sampling rate of signals
@@ -49,28 +49,28 @@ def hv_block_analyzer(db_path, sample_rate, features, n_classes, noise_rate, seg
     :param epochs: the number of training epochs
     :param batch_size: the number of segments in each batch
     :param restore_best: for using regularization {'True', 'False}
-    :param n_hv_block: the number of all hv blocks
-    :param n_train_hv_block: the number of hv blocks to train network
-    :param n_valid_hv_block: the number of hv blocks to validate network
-    :param n_test_hv_block: the number of hv blocks to test network
-    :param hv_moving_step: the number of movement of test and validation blocks in each iteration
+    :param n_h_block: the number of all h blocks
+    :param n_train_h_block: the number of h blocks to train network
+    :param n_valid_h_block: the number of h blocks to validate network
+    :param n_test_h_block: the number of h blocks to test network
+    :param h_moving_step: the number of movement of test and validation blocks in each iteration
     :return:
     """
 
     statistics = {}
     add_noise = noise_rate < 100
 
-    # Create hv blocks
-    data_blocks = [i for i in range(n_hv_block)]
-    n_vt = (n_valid_hv_block + n_test_hv_block)
-    n_iteration = int((n_hv_block - n_vt) / hv_moving_step)
+    # Create h blocks
+    data_blocks = [i for i in range(n_h_block)]
+    n_vt = (n_valid_h_block + n_test_h_block)
+    n_iteration = int((n_h_block - n_vt) / h_moving_step)
     for i in range(n_iteration + 1):
         print('iteration: %d/%d' % (i + 1, n_iteration + 1))
 
-        training_container = data_blocks[0:i] + data_blocks[i + n_vt:n_hv_block]
-        train_blocks = training_container[:n_train_hv_block]
-        valid_blocks = data_blocks[i: i + n_valid_hv_block]
-        test_blocks = data_blocks[i + n_valid_hv_block: i + n_vt]
+        training_container = data_blocks[0:i] + data_blocks[i + n_vt:n_h_block]
+        train_blocks = training_container[:n_train_h_block]
+        valid_blocks = data_blocks[i: i + n_valid_h_block]
+        test_blocks = data_blocks[i + n_valid_h_block: i + n_vt]
 
         dataset = Dataset(db_path,
                           sample_rate,
@@ -101,29 +101,28 @@ def hv_block_analyzer(db_path, sample_rate, features, n_classes, noise_rate, seg
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='datasets/DriverIdentification/',
+    parser.add_argument('--dataset', type=str, default='datasets/RSSI/',
                         help='the address of dataset directory')
-    parser.add_argument('--n_classes', type=int, default=10, help='the number of classes')
+    parser.add_argument('--n_classes', type=int, default=12, help='the number of classes')
     parser.add_argument('--features', nargs='+', type=str,
-                        default=['x-accelerometer', 'y-accelerometer', 'z-accelerometer', 'x-gyroscope', 'y-gyroscope',
-                                 'z-gyroscope'],
+                        default=['rssiOne', 'rssiTwo'],
                         help='the signals of original data')
-    parser.add_argument('--sample_rate', type=int, default=2, help='the sampling rate of signals')
+    parser.add_argument('--sample_rate', type=int, default=1, help='the sampling rate of signals')
     parser.add_argument('--noise_rate', type=int, default=100,
                         help='the rate of noises injected to test data, over 100 means false')
-    parser.add_argument('--epochs', type=int, default=50, help='the number of training epochs')
+    parser.add_argument('--epochs', type=int, default=200, help='the number of training epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='the number of segments in each batch')
     parser.add_argument('--restore_best', type=int, default=1, help='for using regularization, 0 is False other True')
-    parser.add_argument('--model', type=str, default='CNN_L', help='MULTI_CNN|CNN_L|MLP|KNN|LR|RF|SVM')
+    parser.add_argument('--model', type=str, default='MULTI_CNN', help='MULTI_CNN|CNN_L|MLP|KNN|LR|RF|SVM')
     parser.add_argument('--data_length_time', type=int, default=-1, help='the data length for each class,-1 means all')
-    parser.add_argument('--n_hv_block', type=int, default=15, help='the number of all hv blocks')
-    parser.add_argument('--n_train_hv_block', type=int, default=9, help='the number of hv blocks to train network')
-    parser.add_argument('--n_valid_hv_block', type=int, default=2, help='the number of hv blocks to validate network')
-    parser.add_argument('--n_test_hv_block', type=int, default=4, help='the number of hv blocks to test network')
-    parser.add_argument('--hv_moving_step', type=int, default=1, help='moving test blocks rate in each iteration')
-    parser.add_argument('--segments_times', nargs='+', type=int, default=[4, 5 * 60], help='in seconds')
+    parser.add_argument('--n_h_block', type=int, default=6, help='the number of all h blocks')
+    parser.add_argument('--n_train_h_block', type=int, default=4, help='the number of h blocks to train network')
+    parser.add_argument('--n_valid_h_block', type=int, default=1, help='the number of h blocks to validate network')
+    parser.add_argument('--n_test_h_block', type=int, default=1, help='the number of h blocks to test network')
+    parser.add_argument('--h_moving_step', type=int, default=1, help='moving test blocks rate in each iteration')
+    parser.add_argument('--segments_times', nargs='+', type=int, default=[4], help='in seconds')
     parser.add_argument('--segments_overlaps', nargs='+', type=float, default=[0.75], help='percentage in [0,1]')
-    parser.add_argument('--decision_times', nargs='+', type=int, default=[5 * 60], help='in seconds')
+    parser.add_argument('--decision_times', nargs='+', type=int, default=[2 * 60], help='in seconds')
     parser.add_argument('--decision_overlaps', nargs='+', type=float, default=[0], help='percentage in [0,1]')
     opt = parser.parse_args()
 
@@ -132,7 +131,7 @@ if __name__ == '__main__':
     segments_overlaps = opt.segments_overlaps
     decision_times = opt.decision_times
     decision_overlaps = opt.decision_overlaps
-    for model in ['CNN_L']:
+    for model in ['CNN_L']:#, 'MLP', 'KNN', 'LR', 'RF', 'SVM'
         opt.model = model
         for segments_time in segments_times:
             for segments_overlap in segments_overlaps:
@@ -147,23 +146,23 @@ if __name__ == '__main__':
 
                         # cross-validation
                         start = datetime.now()
-                        statistics = hv_block_analyzer(db_path=opt.dataset,
-                                                       sample_rate=opt.sample_rate,
-                                                       features=opt.features,
-                                                       n_classes=opt.n_classes,
-                                                       noise_rate=opt.noise_rate,
-                                                       segments_time=segments_time,
-                                                       segments_overlap=segments_overlap,
-                                                       classifier=classifier,
-                                                       epochs=opt.epochs,
-                                                       batch_size=opt.batch_size,
-                                                       restore_best=opt.restore_best != 0,
-                                                       data_length_time=opt.data_length_time,
-                                                       n_hv_block=opt.n_hv_block,
-                                                       n_train_hv_block=opt.n_train_hv_block,
-                                                       n_valid_hv_block=opt.n_valid_hv_block,
-                                                       n_test_hv_block=opt.n_test_hv_block,
-                                                       hv_moving_step=opt.hv_moving_step)
+                        statistics = h_block_analyzer(db_path=opt.dataset,
+                                                      sample_rate=opt.sample_rate,
+                                                      features=opt.features,
+                                                      n_classes=opt.n_classes,
+                                                      noise_rate=opt.noise_rate,
+                                                      segments_time=segments_time,
+                                                      segments_overlap=segments_overlap,
+                                                      classifier=classifier,
+                                                      epochs=opt.epochs,
+                                                      batch_size=opt.batch_size,
+                                                      restore_best=opt.restore_best != 0,
+                                                      data_length_time=opt.data_length_time,
+                                                      n_h_block=opt.n_h_block,
+                                                      n_train_h_block=opt.n_train_h_block,
+                                                      n_valid_h_block=opt.n_valid_h_block,
+                                                      n_test_h_block=opt.n_test_h_block,
+                                                      h_moving_step=opt.h_moving_step)
                         end = datetime.now()
                         running_time = end - start
 
