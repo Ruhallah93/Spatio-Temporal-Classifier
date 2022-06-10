@@ -64,7 +64,8 @@ def h_block_analyzer(db_path, sample_rate, features, n_classes, noise_rate, segm
     data_blocks = [i for i in range(n_h_block)]
     n_vt = (n_valid_h_block + n_test_h_block)
     n_iteration = int((n_h_block - n_vt) / h_moving_step)
-    for i in range(n_iteration + 1):
+    # for i in range(n_iteration + 1):
+    for i in range(1):
         print('iteration: %d/%d' % (i + 1, n_iteration + 1))
 
         training_container = data_blocks[0:i] + data_blocks[i + n_vt:n_h_block]

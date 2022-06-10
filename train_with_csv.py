@@ -8,11 +8,11 @@ from train import h_block_analyzer
 import json
 
 if __name__ == '__main__':
-    data = pd.read_csv("datasets/args.csv")
+    args = pd.read_csv("datasets/args.csv")
 
-    for dataset in data.dataset:
+    for dataset in args.dataset:
         log_dir = "logs/"
-        opt = data[data.dataset == dataset].iloc[0]
+        opt = args[args.dataset == dataset].iloc[0]
 
         opt.features = eval(opt.features)
         opt.segments_times = eval(opt.segments_times)
@@ -61,7 +61,7 @@ if __name__ == '__main__':
                             running_time = end - start
 
                             # Summarizing the results of cross-validation
-                            data = opt.__dict__
+                            data = opt.to_dict()
                             data['inner_classifier'] = str(model)
                             data['datetime'] = datetime.now().strftime("%Y:%m:%d %H:%M:%S")
                             data['running_time'] = str(running_time.seconds) + " seconds"
