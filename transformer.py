@@ -5,7 +5,7 @@ class Transformer:
 
     def __init__(self, segments_size=90, segments_overlap=45, sampling=2):
         self.segments_size = segments_size
-        self.segments_overlap = segments_overlap
+        self.overlap = segments_overlap
         self.sampling = sampling
 
     def transfer(self, dataset, features, method):
@@ -18,6 +18,8 @@ class Transformer:
             segments_dataset = self.__transfer_1d(segments, features)
         elif method == "2d":
             segments_dataset = self.__transfer_2d(segments, features)
+        elif method == "3d_1ch":
+          segments_dataset = self.__transfer_2d_1ch(segments, features)
         elif method == "3d":
             segments_dataset = self.__transfer_3d(segments, features)
         elif method == "4d":
@@ -31,6 +33,8 @@ class Transformer:
         elif method == "1d":
             return (None, 1, n_features * segments_size, 1)
         elif method == "2d":
+            return (None, n_features, segments_size)
+        elif method == "3d_1ch":
             return (None, n_features, segments_size, 1)
         elif method == "3d":
             return (None, 1, segments_size, n_features)
@@ -63,6 +67,17 @@ class Transformer:
         return np.expand_dims(new_dataset, axis=3)
 
     def __transfer_2d(self, segments, features):
+        new_dataset = []
+        for segment in segments:
+            row = []
+            for feature_i in range(len(features)):
+                row.append(segment[feature_i])
+            new_dataset.append(row)
+
+        new_dataset = np.array(new_dataset)
+        return new_dataset
+
+    def __transfer_3d_1ch(self, segments, features):
         new_dataset = []
         for segment in segments:
             row = []
