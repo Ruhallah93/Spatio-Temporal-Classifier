@@ -6,15 +6,15 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 ## Multiple plots
-datasets = ["ConfLongDemo_JSI:2022:04:01 23:36:21",
-            "DriverIdentification:2022:04:03 19:06:33",
-            "Healthy_Older_People:2022:04:03 02:35:53",
-            "Motor_Failure_Time:2022:04:03 04:25:44",
-            "Power_consumption:2022:04:02 01:05:58",
-            "PRSA2017:2022:04:02 18:06:21",
-            "RSSI:2022:04:02 18:37:24",
-            "User_Identification_From_Walking:2022:04:02 18:44:15",
-            "WISDM:2022:04:03 07:42:02"]
+datasets = ["ConfLongDemo_JSI_2022_04_01 23_36_21",
+            "DriverIdentification_2022_04_03 19_06_33",
+            "Healthy_Older_People_2022_04_03 02_35_53",
+            "Motor_Failure_Time_2022_04_03 04_25_44",
+            "Power_consumption_2022_04_02 01_05_58",
+            "PRSA2017_2022_04_02 18_06_21",
+            "RSSI_2022_04_02 18_37_24",
+            "User_Identification_From_Walking_2022_04_02 18_44_15",
+            "WISDM_2022_04_03 07_42_02"]
 names = ["Kaluža et al. (2010)",
          "Eftekhari and Ghatee (2018)",
          "Torres et al. (2013)",

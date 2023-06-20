@@ -1,3 +1,5 @@
+"\cite{casale2012personalization}"
+
 https://archive.ics.uci.edu/ml/datasets/User+Identification+From+Walking+Activity
 
 Sampling Rate: 32

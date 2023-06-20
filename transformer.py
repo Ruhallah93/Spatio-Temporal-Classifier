@@ -120,7 +120,7 @@ class Transformer:
         start = 0
         while start < data.count():
             yield int(start), int(start + self.segments_size)
-            start += (self.segments_size - self.segments_overlap)
+            start += (self.segments_size - self.overlap)
 
     def __segment_signal(self, dataset, features):
         segments = []

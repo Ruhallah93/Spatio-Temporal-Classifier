@@ -1,3 +1,5 @@
+"\cite{eftekhari2018hybrid}"
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='datasets/DriverIdentification/',
                         help='the address of dataset directory')
