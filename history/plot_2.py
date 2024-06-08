@@ -24,6 +24,15 @@ names = ["Kaluža et al. (2010)",
          "Dua and Graﬀ (2017)",
          "Casale et al. (2012)",
          "Weiss et al. (2019)"]
+names = ["dataset [62]",
+         "dataset [67]",
+         "dataset [61]",
+         "dataset [63]",
+         "dataset [64]",
+         "dataset [65]",
+         "dataset [66]",
+         "dataset [59]",
+         "dataset [60]"]
 
 fig = make_subplots(rows=3, cols=3, subplot_titles=names)
 for i, dataset in enumerate(datasets):
