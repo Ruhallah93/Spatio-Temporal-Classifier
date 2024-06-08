@@ -10,16 +10,6 @@
 
 Unlocking the secrets hidden within spatio-temporal data is no easy feat, but our groundbreaking research aims to revolutionize this field. Introducing the Batch Averaging Probabilities (BAP) model, we've developed an innovative approach to tackle the intricate challenges posed by the random arrangement of primary patterns within mixed patterns. By partitioning input sequences into crafted subsequences and employing a cutting-edge training algorithm, BAP stands poised to reshape the landscape of spatio-temporal data classification. Our contributions extend beyond mere model development; we offer a deep dive into fusion methods, theoretical insights, and a game-changing training approach using fusion error-based model checkpointing. Through rigorous empirical evaluation, we showcase the unparalleled performance of our approach, elevating the standard for spatio-temporal data classification.
 
-## Files & Directories
-
-1. BaselineModels.ipynb: It includes the implementation of baseline models for comparison with the proposed model.
-2. BaselineFusion.ipynb: It contains the implementation of models using fusion functions, averaging, and majority
-   voting.
-3. UserIdentificationAnalysis.ipynb: It includes the implementation of the proposed model, which is based on uncertainty
-   quantification and accompanied by various analyses such as SOTA, convergence analysis (D'Alembert's Ratio Test), and
-   similarity visualization.
-4. ProposedModel.ipynb : It encompasses the absolute implementation of the proposed model.
-
 ## Evaluation Methodology
 
 Given the nature of our data being signal-oriented, the technique of $h$-block cross-validation is employed for model
