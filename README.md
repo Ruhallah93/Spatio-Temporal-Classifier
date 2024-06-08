@@ -172,47 +172,6 @@ The hyperparameters of this project:
 |   <img src="benchmark/images/WISDM/CNN.png" width="200" height="200">    |      <img src="benchmark/images/WISDM/KNN.png" width="200" height="200">      | <img src="benchmark/images/WISDM/Linear Regression.png" width="200" height="200"> |
 |   <img src="benchmark/images/WISDM/MLP.png" width="200" height="200">    | <img src="benchmark/images/WISDM/Random Forest.png" width="200" height="200"> |        <img src="benchmark/images/WISDM/SVM.png" width="200" height="200">        |
 
-## Comparison of the proposed model with the baseline models in terms of F1-Score
-
-| Dataset |          Model           |   `w`    |   `s`    |      F1-Score      |
-|:-------:|:------------------------:|:--------:|:--------:|:------------------:|
-|   CLD   |           KNN            | 00:00:03 |    -     |   25.50 (± 0.02)   |
-|   CLD   |           MLP            | 00:00:04 |    -     |   33.45 (± 0.12)   |
-|   CLD   |            RF            | 00:00:08 |    -     |   07.62 (± 0.01)   |
-|   CLD   |            LR            | 00:02:00 |    -     |   30.43 (± 0.14)   |
-|   CLD   |           SVM            | 00:02:00 |    -     |   31.53 (± 0.17)   |
-|   CLD   |           CNN            | 00:00:03 |    -     |   56.71 (± 0.10)   |
-|   CLD   |           GRU            | 00:00:10 | 00:00:30 |   39.65 (± 0.06)   |
-|   CLD   |           LSTM           | 00:00:03 | 00:00:09 |   37.25 (± 0.04)   |
-|   CLD   |          BiLSTM          | 00:00:07 | 00:01:00 |   52.22 (± 0.12)   |
-|   CLD   |         ConvLSTM         | 00:00:03 | 00:04:00 |   36.33 (± 0.03)   |
-|   CLD   | Fusion (Majority Voting) | 00:00:03 | 00:02:00 |   95.30 (± 0.05)   |
-|   CLD   |    Fusion (Averaging)    | 00:00:03 | 00:02:00 | **95.49 (± 0.04)** |
-|   HOP   |           KNN            | 00:00:04 |    -     |   31.47 (± 0.06)   |
-|   HOP   |           MLP            | 00:00:04 |    -     |   30.38 (± 0.06)   |
-|   HOP   |            RF            | 00:00:03 |    -     |   31.60 (± 0.06)   |
-|   HOP   |            LR            | 00:00:30 |    -     |   19.63 (± 0.04)   |
-|   HOP   |           SVM            | 00:00:30 |    -     |   16.86 (± 0.04)   |
-|   HOP   |           CNN            | 00:00:06 |    -     |   37.09 (± 0.07)   |
-|   HOP   |           GRU            | 00:00:06 | 00:00:10 |   36.84 (± 0.07)   |
-|   HOP   |           LSTM           | 00:00:03 | 00:00:08 |   36.45 (± 0.06)   |
-|   HOP   |          BiLSTM          | 00:00:06 | 00:00:10 |   36.91 (± 0.06)   |
-|   HOP   |         ConvLSTM         | 00:00:03 | 00:00:09 |   32.06 (± 0.06)   |
-|   HOP   | Fusion (Majority Voting) | 00:00:08 | 00:03:00 |   62.40 (± 0.08)   |
-|   HOP   |    Fusion (Averaging)    | 00:00:08 | 00:03:00 | **64.63 (± 0.08)** |
-|  UIFW   |           KNN            | 00:00:03 |    -     |   33.92 (± 0.03)   |
-|  UIFW   |           MLP            | 00:00:03 |    -     |   40.76 (± 0.05)   |
-|  UIFW   |            RF            | 00:00:03 |    -     |   12.43 (± 0.02)   |
-|  UIFW   |            LR            | 00:00:08 |    -     |   26.66 (± 0.04)   |
-|  UIFW   |           SVM            | 00:00:18 |    -     |   22.52 (± 0.04)   |
-|  UIFW   |           CNN            | 00:00:03 |    -     |   56.75 (± 0.05)   |
-|  UIFW   |           GRU            | 00:00:03 | 00:00:06 |   54.56 (± 0.07)   |
-|  UIFW   |           LSTM           | 00:00:03 | 00:00:06 |   56.10 (± 0.07)   |
-|  UIFW   |          BiLSTM          | 00:00:03 | 00:00:20 |   66.56 (± 0.06)   |
-|  UIFW   |         ConvLSTM         | 00:00:03 | 00:00:05 |   48.18 (± 0.08)   |
-|  UIFW   | Fusion (Majority Voting) | 00:00:03 | 00:00:22 |   85.57 (± 0.08)   |
-|  UIFW   |    Fusion (Averaging)    | 00:00:03 | 00:00:22 | **85.74 (± 0.09)** |
-
 ## Benchmark
 
 A comparison was made between this study and previous works [[4]](#4) and [[5]](#5) using the DB2 and HAR datasets,
